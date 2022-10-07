@@ -20,7 +20,10 @@ import com.github.scribejava.core.oauth.OAuth10aService;
 public class OAuthHttp {
 	
 	private final Logger logger = Logger.getLogger(OAuthHttp.class);
-	
+
+    @Value("${urlWikiBase}")
+    private String urlWikiBase;
+
 	@Value("${oauth.consumerToken}")
     private String consumerToken;
 	@Value("${oauth.consumerSecret}")
@@ -68,7 +71,7 @@ public class OAuthHttp {
     
     //Connexion à WikiBase avec un compte OAuth
     //oAuth vaudra forcément true, donc getJson et postJson utiliseront les versions avec OAuth
-    public void connexionOAuth(String urlWikiBase) throws Exception {
+    public void connexionOAuth() throws Exception {
     	oAuthService = new ServiceBuilder(consumerToken).apiSecret(consumerSecret).build(MediaWikiApi.instance());
     	//Sinon, avec debug : 
     	//oAuthService = new ServiceBuilder(consumerToken).debug().apiSecret(consumerSecret).build(MediaWikiApi.instance());

@@ -51,7 +51,7 @@ public class BatchApplication implements CommandLineRunner {
 			if (action.equalsIgnoreCase("loadSubset")) {
 				//The second parameter "subsetFile" can be something like "C:/[...]/something.txt"
                 //If subsetFile, by default the file is : resources/EchantillonPPN.txt
-				loadSubset.go(urlWikiBase,"");
+				loadSubset.go("");
 			}
 			else if (action.equalsIgnoreCase("loadAll")) {
 				loadAll.go(urlWikiBase);

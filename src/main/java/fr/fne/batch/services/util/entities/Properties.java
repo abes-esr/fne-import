@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -20,19 +21,30 @@ import java.util.Map;
 public class Properties {
     private final Logger logger = Logger.getLogger(Properties.class);
 
+    @Value("${urlWikiBase}")
+    private String urlWikiBase;
+
     @Autowired
     private Tool util;
 
     /*
     * Insert into wikibase instance, properties found in the resources/Properties.txt file
      */
-    public void create(String urlWikiBase,String csrftoken) throws Exception {
+    public void createWithFile(String csrftoken) throws Exception {
         File file = new ClassPathResource("Properties.txt").getFile();
         List<String> lines = FileUtils.readLines(file, "UTF-8");
         Iterator line = lines.iterator();
 
         while (line.hasNext()){
-            String theLine = (String)line.next();
+            String prop = (String)line.next();
+            String idProp = create(csrftoken,prop);
+        }
+    }
+
+    /*
+     * Creation de la propriété prop
+     */
+    public String create(String csrftoken, String prop) throws Exception {
             // Properties creation :
             Map<String, String> params = new LinkedHashMap<>();
             params = new LinkedHashMap<>();
@@ -41,24 +53,17 @@ public class Properties {
             params.put("token", csrftoken);
             params.put("format", "json");
 
-            //Il faudrait gérer le type dans le fichier Properties.txt, en attendant, on gère les 2 cas comme ça :
-            //Propriétés spéciales : liens vers une autre entité : type wikibase-item. Exemple : 500$3Liee
-            if (theLine.contains("Liee")) {
-                params.put("data", "{\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"" + theLine + "\"}},\"datatype\":\"wikibase-item\"}");
-            }
-            //Sinon c'est des propriétés de type string
-            else {
-                params.put("data", "{\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"" + theLine + "\"}},\"datatype\":\"string\"}");
-            }
+            params.put("data", "{\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"" + prop + "\"}},\"datatype\":\"string\"}");
+
             JSONObject json = util.postJson(urlWikiBase, params);
             logger.info("==>" + json.toString());
-        }
+            return json.getJSONObject("entity").optString("id");
     }
 
     /*
     * Return a map with the label and the wikibase ID (Pxx)
      */
-    public Map get(String urlWikiBase,String csrftoken) throws Exception {
+    public Map get(String csrftoken) throws Exception {
         // Getting namespace Property id
         JSONObject json = util.getJson(urlWikiBase + "?action=query&format=json&meta=siteinfo&siprop=namespaces");
         Iterator<String> it = json.optJSONObject("query").optJSONObject("namespaces").keys();
@@ -110,8 +115,8 @@ public class Properties {
 
         //If nothing to load, create properties
         if (properties.size()==0){
-            create(urlWikiBase,csrftoken);
-            properties = get(urlWikiBase,csrftoken);
+            createWithFile(csrftoken);
+            properties = get(csrftoken);
         }
         return properties;
     }

@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import fr.fne.batch.services.util.api.Tool;
@@ -15,6 +16,10 @@ import fr.fne.batch.services.util.api.Tool;
 @Service
 public class DeleteWB {
 	private final Logger logger = Logger.getLogger(DeleteWB.class);
+
+	@Value("${urlWikiBase}")
+	private String urlWikiBase;
+
 	@Autowired
     private Tool util;
 	
@@ -29,7 +34,7 @@ public class DeleteWB {
 		try {
 			//Connexion au WikiBase et récupération du csrftoken nécessaire
 			util.setOAuth(false);
-			String csrftoken = util.connexionWB(urlWikiBase);
+			String csrftoken = util.connexionWB();
 			Map<String, String> params = new LinkedHashMap<>();
 			
 			//Récupération de l'id des namespaces Item et Property

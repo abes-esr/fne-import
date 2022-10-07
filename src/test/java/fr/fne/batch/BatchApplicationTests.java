@@ -24,7 +24,7 @@ class BatchApplicationTests {
 	@Value("${urlWikiBase}")
 	private String urlWikiBase;
 
-	@Value("${cbs.url}")
+	/*@Value("${cbs.url}")
 	private String cbsUrl;
 	@Value("${cbs.port}")
 	private String cbsPort;
@@ -32,6 +32,7 @@ class BatchApplicationTests {
 	private String cbsLogin;
 	@Value("${cbs.pwd}")
 	private String cbsPwd;
+*/
 
 	@Autowired
 	private Tool util;
@@ -43,7 +44,7 @@ class BatchApplicationTests {
 	void createProperty() {
 		try {
 			util.setOAuth(false);
-			String csrftoken = util.connexionWB(urlWikiBase);
+			String csrftoken = util.connexionWB();
 
 			Map<String, String> params = new LinkedHashMap<>();
 			params = new LinkedHashMap<>();
@@ -51,10 +52,10 @@ class BatchApplicationTests {
 			params.put("new", "property");
 			params.put("token", csrftoken);
 			params.put("format", "json");
-			params.put("data", "{\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"ordre\"}},\"datatype\":\"string\"}");
+			params.put("data", "{\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"ordre3\"}},\"datatype\":\"string\"}");
 
 			JSONObject json = util.postJson(urlWikiBase, params);
-			log.info("==>" + json.toString());
+			log.info("==>" + json.getJSONObject("entity").optString("id"));
 		}
 		catch (Exception e){
 			log.error("Erreur : "+e.getMessage());
@@ -70,7 +71,7 @@ class BatchApplicationTests {
     void createItemWithQualifiers() {
         try {
             util.setOAuth(false);
-            String csrftoken = util.connexionWB(urlWikiBase);
+            String csrftoken = util.connexionWB();
 
             Map<String, String> params = new LinkedHashMap<>();
             params = new LinkedHashMap<>();
@@ -108,6 +109,7 @@ class BatchApplicationTests {
         }
     }
 
+	/*
 	@Test
     void createAutoriteCBS(){
     	try {
@@ -141,5 +143,5 @@ class BatchApplicationTests {
 		catch (Exception e){
     		log.error("error:"+e.getMessage());
 		}
-	}
+	}*/
 }

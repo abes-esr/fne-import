@@ -25,6 +25,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class BasicHttp {
 
+	@Value("${urlWikiBase}")
+	private String urlWikiBase;
+
 	@Value("${bot.login}")
     private String lgname;
 	@Value("${bot.pwd}")
@@ -114,7 +117,7 @@ public class BasicHttp {
     
   //Connexion à WikiBase avec un compte Bot et cookie
     //oAuth vaudra forcément false, donc getJson et postJson utiliseront les versions "basiques" (sans OAuth)
-    public void connexionBot(String urlWikiBase) throws Exception {
+    public void connexionBot() throws Exception {
 		/* ## CONNECTION ## */
 		// 1) Recuperer un login token
 		// Le cookie est obligatoire sinon erreur

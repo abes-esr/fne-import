@@ -4,13 +4,17 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class Tool {
 	private boolean oAuth = true; //Par défaut : utilisation de OAuth. Car préconisé : https://www.mediawiki.org/wiki/OAuth/For_Developers    
     private final Logger logger = Logger.getLogger(Tool.class);
-	
+
+	@Value("${urlWikiBase}")
+	private String urlWikiBase;
+
 	@Autowired
     private BasicHttp basicHttp;
 	@Autowired
@@ -27,12 +31,12 @@ public class Tool {
     /*
      * Connexion à WikiBase et renvoie du csrftoken
      */
-    public String connexionWB(String urlWikiBase) throws Exception{
+    public String connexionWB() throws Exception{
     	if (oAuth) {
-    		oAuthHttp.connexionOAuth(urlWikiBase);
+    		oAuthHttp.connexionOAuth();
     	}
     	else {
-    		basicHttp.connexionBot(urlWikiBase);
+    		basicHttp.connexionBot();
     	}
     	
     	//Récupèration du token CSRF : csrftoken si connexion OK

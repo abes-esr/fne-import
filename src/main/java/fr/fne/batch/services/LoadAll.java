@@ -65,7 +65,7 @@ public class LoadAll {
 
 			// Connect to WikiBase and get the necessary csrftoken
 			util.setOAuth(false);
-			String csrftoken = util.connexionWB(urlWikiBase);
+			String csrftoken = util.connexionWB();
 			logger.info("The csrftoken is : " + csrftoken);
 
             //You can force the creation of properties :
@@ -73,7 +73,7 @@ public class LoadAll {
 
             //Get all properties needed (to know the wikibase ID)
             Map<String,String> props;
-			props = properties.get(urlWikiBase,csrftoken);
+			props = properties.get(csrftoken);
 			logger.info("Number of properties loaded : "+props.size());
 
 			// jump (1000) x 10000 = 10 000 000 => this class can load up to 10 000 000 records

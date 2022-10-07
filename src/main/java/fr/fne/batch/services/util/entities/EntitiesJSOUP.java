@@ -11,6 +11,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
@@ -30,13 +31,19 @@ public class EntitiesJSOUP {
     /** The Constant STR0098. */
     public static final String STR0098 = new String(new char[]{(char) 152});
 
+    @Value("${urlWikiBase}")
+    private String urlWikiBase;
+
     @Autowired
     private Tool util;
+
+    @Autowired
+    private Properties properties;
 
     /*
      * Insert in urlWikiBase, the record, with the properties defined (props)
      */
-    public void insert(String urlWikiBase,String csrftoken, Map<String,String> props, String record) {
+    public void insert(String csrftoken, Map<String,String> props, String record) {
         try {
             String noticeXML = record.replace(STR009C, "").replace(STR0098, "");
             //logger.info(noticeXML);
@@ -62,14 +69,7 @@ public class EntitiesJSOUP {
                 /*for (Map.Entry<String, String> entry : props.entrySet()) {
                     data += addClaims(props, theNotice, entry.getKey().substring(0,3));
                 }*/
-                data += addClaims(props, theNotice, "001");
-                data += addClaims(props, theNotice, "005");
-                data += addClaims(props, theNotice, "033");
-                data += addClaims(props, theNotice, "035");
-                data += addClaims(props, theNotice, "100");
-                data += addClaims(props, theNotice, "200");
-                data += addClaims(props, theNotice, "400");
-                data += addClaims(props, theNotice, "500");
+                data += addClaims(csrftoken, props, theNotice);
 
                 if (data.endsWith(",")){
                     data = data.substring(0,data.length()-1);
@@ -104,54 +104,63 @@ public class EntitiesJSOUP {
      * controlfield (element with tag and no ind attributes) and
      * datafield (element with tag and ind attributes) which contains subfield
      */
-    private String addClaims(Map<String,String> props, Document theNotice, String tag){
+    private String addClaims(String csrftoken, Map<String,String> props, Document theNotice) throws Exception{
         String data = "";
-        Elements zones = theNotice.getElementsByAttributeValue("tag", tag);
 
+        //Leader
+        //logger.info("LEADER:"+theNotice.getElementsByTag("leader").get(0).text());
+        data += jsonClaim(csrftoken,props,"leader",theNotice.getElementsByTag("leader").get(0).text(),1,1);
+
+        int regroupement = 1;
+
+        //ControlField
+        Elements zones = theNotice.getElementsByTag("controlfield");
         for (int i=0;i<zones.size();i++){
             Element zone = zones.get(i);
+            regroupement++;
+            data += jsonClaim(csrftoken,props,zone.attr("tag"),zone.text(),regroupement,1);
+        //    logger.info("CONTROLFIELD:"+zone.attr("tag")+" texte:"+zone.text());
+        }
 
-            //By default, it"s supposed to be a controlfield
-            String value = zone.text();
-            if (!zone.hasAttr("ind1")) {
-                data += jsonClaim(props,tag,value);
-            }
-            //If it's a datafield :
-            else {
-                String tagEnCours = tag;
+        int ordre = 0;
+        //DataField
+        zones = theNotice.getElementsByTag("datafield");
+        for (int i=0;i<zones.size();i++){
+            Element zone = zones.get(i);
+            regroupement++;
+            ordre = 0;
+            String tagEnCours = zone.attr("tag");
 
-                String ind1 = zone.attr("ind1");
-                String ind2 = zone.attr("ind2");
-                if ((ind1 != null && !ind1.trim().isEmpty()) || (ind2 != null && !ind2.trim().isEmpty()) ) {
-                    if (ind1 != null && !ind1.trim().isEmpty()) {
-                        tagEnCours += ind1;
-                    }
-                    else {
-                        tagEnCours += "#";
-                    }
-                    if (ind2 != null && !ind2.trim().isEmpty()) {
-                        tagEnCours += ind2;
-                    }
-                    else {
-                        tagEnCours += "#";
-                    }
+            //TODO : ajouter les indicateurs
+            /*String ind1 = zone.attr("ind1");
+            String ind2 = zone.attr("ind2");
+            if ((ind1 != null && !ind1.trim().isEmpty()) || (ind2 != null && !ind2.trim().isEmpty()) ) {
+                if (ind1 != null && !ind1.trim().isEmpty()) {
+                    tagEnCours += ind1;
                 }
-
-                Elements subZones = zone.getElementsByTag("subfield");
-                for (int j=0;j<subZones.size();j++){
-                    String subZoneTag = tagEnCours+"$";
-                    Element subZone = subZones.get(j);
-                    value = subZone.text();
-                    subZoneTag+=subZone.attr("code");
-                    //TODO : use something else to know if the tag/zone is repeatable (maybe in the Properties.txt file description ?)
-                    //Maybe with a POJO ?
-                    if (tag.startsWith("035") || tag.startsWith("400") || tag.startsWith("500")){
-                        subZoneTag+="_"+(i+1);
-                    }
-
-                    data += jsonClaim(props,subZoneTag,value);
+                else {
+                    tagEnCours += "#";
                 }
+                if (ind2 != null && !ind2.trim().isEmpty()) {
+                    tagEnCours += ind2;
+                }
+                else {
+                    tagEnCours += "#";
+                }
+            }*/
+
+
+            Elements subZones = zone.getElementsByTag("subfield");
+            for (int j=0;j<subZones.size();j++){
+                String subZoneTag = tagEnCours+"$";
+                Element subZone = subZones.get(j);
+                String value = subZone.text();
+                subZoneTag+=subZone.attr("code");
+                ordre++;
+//logger.info("SUBFIELD : tagEnCours: "+tagEnCours+" subZoneTag:"+subZoneTag+" Value:"+value+ "regroupement:"+regroupement+" ordre:"+ordre);
+                data += jsonClaim(csrftoken,props,subZoneTag,value, regroupement, ordre);
             }
+
         }
         return data;
     }
@@ -159,16 +168,20 @@ public class EntitiesJSOUP {
     /*
      * Generate the json string to pass to the wikibase API
      */
-    private String jsonClaim(Map<String,String> props, String tag, String value){
-        logger.info(tag);
+    private String jsonClaim(String csrftoken, Map<String,String> props, String tag, String value, int regroupement, int ordre) throws Exception{
+        //logger.info(tag);
         String claim = "";
-        //TODO : add the else case : if property is null, but should be created, then create it and reload properties.
-        //Could be usefull for repeatable property : with position suffix : like 035$a_1, 035$a_2, etc.
-        if (props.get(tag)!=null){
-            claim = "{\"mainsnak\":{\"snaktype\":\"value\",\"property\":\"" +
-                    props.get(tag) + "\",\"datavalue\":{\"value\":\"" + value +
-                    "\",\"type\":\"string\"}},\"type\":\"statement\",\"rank\":\"normal\"},";
+        if (props.get(tag)==null){
+            String idProp = properties.create(csrftoken,tag); // Création de la propriété
+            props.put(tag, idProp); // Ajout dans la map
         }
+        claim = "{\"mainsnak\":{\"snaktype\":\"value\",\"property\":\"" +
+                props.get(tag) + "\",\"datavalue\":{\"value\":\"" + value +
+                "\",\"type\":\"string\"}},\"type\":\"statement\",\"rank\":\"normal\"," +
+                "\"qualifiers\":[" +
+                    "{\"datavalue\":{\"type\":\"string\",\"value\":\""+regroupement+"\"},\"property\":\""+props.get("Regroupement")+"\",\"snaktype\":\"value\",\"datatype\":\"string\"}," +
+                    "{\"datavalue\":{\"type\":\"string\",\"value\":\""+ordre+"\"},\"property\":\""+props.get("Ordre")+"\",\"snaktype\":\"value\",\"datatype\":\"string\"}" +
+                "]},";
         return claim;
     };
 }
