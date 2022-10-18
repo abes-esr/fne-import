@@ -3,13 +3,18 @@ package fr.fne.batch.services;
 import java.io.File;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import fr.fne.batch.services.util.bdd.DatabaseInsert;
 import fr.fne.batch.services.util.entities.EntitiesJSOUP;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -43,12 +48,17 @@ public class LoadSubset {
 
     // Test with : http://fagonie-dev.v102.abes.fr:8181/
     public void go(String subsetFile) {
+
+
+
+
         long start = System.currentTimeMillis();
         int recordNb = 0;
 
         logger.info("LoadSubset starts :");
 
         try {
+
             //Get id records (PPN) to be loaded in the WikiBase instance
             File file;
             if (subsetFile.isEmpty()){
@@ -81,6 +91,20 @@ public class LoadSubset {
             props = properties.get(csrftoken);
             logger.info("Number of properties loaded : "+props.size());
 
+
+
+            //Test chargement direct en BDD
+            Connection connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/my_wiki?characterEncoding=utf-8",
+                    "sqluser",
+                    "change-this-sqlpassword");
+
+            DatabaseInsert di = new DatabaseInsert(connection);
+            final StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+            di.startTransaction();
+
+
             //Connect to the database and get the records
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(
                     "select id, ppn, XMLROOT(data_xml,version '1.0\" encoding=\"UTF-8') as data_xml from notices where id in "
@@ -90,10 +114,15 @@ public class LoadSubset {
                 recordNb++;
                 String ppn = row.get("ppn").toString();
                 logger.info("PPN à insérer : " + ppn);
-                entities.insert(csrftoken,props,((XMLType) row.get("data_xml")).getStringVal());
+                //DatabaseInsert di appelé avec createItem
+                entities.insert(di, csrftoken,props,((XMLType) row.get("data_xml")).getStringVal());
             }
 
+            di.commit();
+            stopWatch.stop();
 
+            logger.info("Created "+recordNb+" items in {} s." + stopWatch.getTime());
+            logger.info("Speed is "+(int) (recordNb * 60 / (double) stopWatch.getTime())+" items/minute.");
 
         } catch (Exception e) {
             logger.error("LoadSubset pb : " + e.getMessage());

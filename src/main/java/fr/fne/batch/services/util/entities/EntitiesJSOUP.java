@@ -2,6 +2,7 @@ package fr.fne.batch.services.util.entities;
 
 import fr.fne.batch.services.LoadAll;
 import fr.fne.batch.services.util.api.Tool;
+import fr.fne.batch.services.util.bdd.DatabaseInsert;
 import oracle.xdb.XMLType;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -43,7 +44,7 @@ public class EntitiesJSOUP {
     /*
      * Insert in urlWikiBase, the record, with the properties defined (props)
      */
-    public void insert(String csrftoken, Map<String,String> props, String record) {
+    public void insert(DatabaseInsert databaseInsert, String csrftoken, Map<String,String> props, String record) {
         try {
             String noticeXML = record.replace(STR009C, "").replace(STR0098, "");
             //logger.info(noticeXML);
@@ -61,22 +62,16 @@ public class EntitiesJSOUP {
             if (!title.isEmpty()) { // "Works" Tr case without title, example : id='5420922'
 
                 // Doc how to create entites : item, prop, etc. => https://www.wikidata.org/w/api.php?action=help&modules=wbeditentity
-                String data = "{\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"" + title + "\"}},\"claims\":[";
+                String data = "{\"type\": \"item\",\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"" + title + "\"}},\"claims\":{";
 
-                //For each known property (ex : 001,005,etc.) :
-                //It's commented because there are too many properties on fagonie-dev, but it could be a good way to handle the definition of properties..
-                //TODO : use a POJO to define and store record, and a DTO to transform data for wikibase
-                /*for (Map.Entry<String, String> entry : props.entrySet()) {
-                    data += addClaims(props, theNotice, entry.getKey().substring(0,3));
-                }*/
                 data += addClaims(csrftoken, props, theNotice);
 
                 if (data.endsWith(",")){
                     data = data.substring(0,data.length()-1);
                 }
-                data+="]}";
+                data+="}}";
 
-                Map<String, String> params = new LinkedHashMap<>();
+               /* Map<String, String> params = new LinkedHashMap<>();
                 params.put("action", "wbeditentity");
                 params.put("new", "item");
                 params.put("token", csrftoken);
@@ -85,7 +80,9 @@ public class EntitiesJSOUP {
 
                 logger.info("data : "+data);
                 JSONObject json = util.postJson(urlWikiBase, params);
-                logger.info("==>" + json.toString());
+                logger.info("==>" + json.toString());*/
+
+                databaseInsert.createItem(data);
             } else {
                 logger.info("==> no title for PPN : " + noticeXML);
             }
@@ -94,7 +91,7 @@ public class EntitiesJSOUP {
             // => https://www.wikidata.org/w/api.php?action=help&modules=wbcreateclaim
 
         } catch (Exception e) {
-            logger.error("Error on the record : " + record + " :" + e.getMessage());
+            logger.error("Error on the record :" + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -171,17 +168,24 @@ public class EntitiesJSOUP {
     private String jsonClaim(String csrftoken, Map<String,String> props, String tag, String value, int regroupement, int ordre) throws Exception{
         //logger.info(tag);
         String claim = "";
-        if (props.get(tag)==null){
+        /*if (props.get(tag)==null){
             String idProp = properties.create(csrftoken,tag); // Création de la propriété
             props.put(tag, idProp); // Ajout dans la map
+        }*/
+
+        //On ne gère ici que des propriétés connues car on teste un chargement sans commit
+        if (props.get(tag)!=null) {
+            claim = "\""+props.get(tag)+"\":"+"[{\"mainsnak\":{\"snaktype\":\"value\",\"property\":\"" +
+                    props.get(tag) + "\",\"datavalue\":{\"value\":\"" + value +
+                    "\",\"type\":\"string\"}},\"type\":\"statement\",\"rank\":\"normal\"," +
+                    "\"qualifiers\":[" +
+                    "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + regroupement + "\"},\"property\":\"" + props.get("Regroupement") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}," +
+                    "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + ordre + "\"},\"property\":\"" + props.get("Ordre") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}" +
+                    "]}],";
         }
-        claim = "{\"mainsnak\":{\"snaktype\":\"value\",\"property\":\"" +
-                props.get(tag) + "\",\"datavalue\":{\"value\":\"" + value +
-                "\",\"type\":\"string\"}},\"type\":\"statement\",\"rank\":\"normal\"," +
-                "\"qualifiers\":[" +
-                    "{\"datavalue\":{\"type\":\"string\",\"value\":\""+regroupement+"\"},\"property\":\""+props.get("Regroupement")+"\",\"snaktype\":\"value\",\"datatype\":\"string\"}," +
-                    "{\"datavalue\":{\"type\":\"string\",\"value\":\""+ordre+"\"},\"property\":\""+props.get("Ordre")+"\",\"snaktype\":\"value\",\"datatype\":\"string\"}" +
-                "]},";
+        else {
+            logger.info("Tag "+tag+" à insérer dans Properties.txt");
+        }
         return claim;
     };
 }

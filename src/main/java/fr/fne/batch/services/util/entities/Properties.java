@@ -56,7 +56,7 @@ public class Properties {
             params.put("data", "{\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"" + prop + "\"}},\"datatype\":\"string\"}");
 
             JSONObject json = util.postJson(urlWikiBase, params);
-            logger.info("==>" + json.toString());
+            //logger.info("==>" + json.toString());
             return json.getJSONObject("entity").optString("id");
     }
 
