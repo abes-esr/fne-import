@@ -112,24 +112,24 @@ public class EntitiesJSOUP {
         //logger.info("LEADER:"+theNotice.getElementsByTag("leader").get(0).text());
         dataJ = jsonClaim(csrftoken,props,"leader",theNotice.getElementsByTag("leader").get(0).text(),1,1, dataJ);
 
-        int regroupement = 1;
+        int ordre = 1;
 
         //ControlField
         Elements zones = theNotice.getElementsByTag("controlfield");
         for (int i=0;i<zones.size();i++){
             Element zone = zones.get(i);
-            regroupement++;
-            dataJ = jsonClaim(csrftoken,props,zone.attr("tag"),zone.text(),regroupement,1, dataJ);
+            ordre++;
+            dataJ = jsonClaim(csrftoken,props,zone.attr("tag"),zone.text(),ordre,1, dataJ);
         //    logger.info("CONTROLFIELD:"+zone.attr("tag")+" texte:"+zone.text());
         }
 
-        int ordre = 0;
+        int regroupement = 0;
         //DataField
         zones = theNotice.getElementsByTag("datafield");
         for (int i=0;i<zones.size();i++){
             Element zone = zones.get(i);
-            regroupement++;
-            ordre = 0;
+            ordre++;
+            regroupement = 0;
             String tagEnCours = zone.attr("tag");
 
             //TODO : ajouter les indicateurs
@@ -157,9 +157,9 @@ public class EntitiesJSOUP {
                 Element subZone = subZones.get(j);
                 String value = subZone.text();
                 subZoneTag+=subZone.attr("code");
-                ordre++;
+                regroupement++;
 //logger.info("SUBFIELD : tagEnCours: "+tagEnCours+" subZoneTag:"+subZoneTag+" Value:"+value+ "regroupement:"+regroupement+" ordre:"+ordre);
-                dataJ = jsonClaim(csrftoken,props,subZoneTag,value, regroupement, ordre, dataJ);
+                dataJ = jsonClaim(csrftoken,props,subZoneTag,value, ordre, regroupement, dataJ);
             }
 
         }
@@ -169,7 +169,7 @@ public class EntitiesJSOUP {
     /*
      * Generate the json string to pass to the wikibase API
      */
-    private JSONObject jsonClaim(String csrftoken, Map<String,String> props, String tag, String value, int regroupement, int ordre, JSONObject dataJ) throws Exception{
+    private JSONObject jsonClaim(String csrftoken, Map<String,String> props, String tag, String value, int ordre, int regroupement, JSONObject dataJ) throws Exception{
         //logger.info(tag);
 
         /*if (props.get(tag)==null){
@@ -185,8 +185,8 @@ public class EntitiesJSOUP {
                             props.get(tag) + "\",\"datavalue\":{\"value\":\"" + value.replaceAll("\"","\\\\\"") +
                             "\",\"type\":\"string\"}},\"type\":\"statement\",\"rank\":\"normal\"," +
                             "\"qualifiers\":[" +
-                            "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + regroupement + "\"},\"property\":\"" + props.get("Regroupement") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}," +
-                            "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + ordre + "\"},\"property\":\"" + props.get("Ordre") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}" +
+                            "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + ordre + "\"},\"property\":\"" + props.get("Ordre") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}," +
+                            "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + regroupement + "\"},\"property\":\"" + props.get("Regroupement") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}" +
                             "]}"
             );
             //logger.info("Ajout de : "+ new JSONArray().put(claim).toString());
