@@ -227,7 +227,8 @@ public class DatabaseInsert {
 
 
     public String createItem(String jsonString) throws SQLException {
-logger.info("JSON : "+jsonString);
+
+        //logger.info("JSON : "+jsonString);
         final JSONObject json = new JSONObject(jsonString);
 
         final String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME).replaceAll("[T:-]", "").substring(0, 14);

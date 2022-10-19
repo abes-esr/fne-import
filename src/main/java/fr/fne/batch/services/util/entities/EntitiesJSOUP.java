@@ -177,12 +177,12 @@ public class EntitiesJSOUP {
             props.put(tag, idProp); // Ajout dans la map
         }*/
 
-        //On ne gère ici que des propriétés connues car on teste un chargement sans commit
+        //On ne gère ici que des propriétés connues car on teste un chargement sans commit (on ne peut donc pas en créer à la volée = commit)
         if (props.get(tag)!=null) {
 
             JSONObject claim = new JSONObject(
                     "{\"mainsnak\":{\"snaktype\":\"value\",\"property\":\"" +
-                            props.get(tag) + "\",\"datavalue\":{\"value\":\"" + value +
+                            props.get(tag) + "\",\"datavalue\":{\"value\":\"" + value.replaceAll("\"","\\\\\"") +
                             "\",\"type\":\"string\"}},\"type\":\"statement\",\"rank\":\"normal\"," +
                             "\"qualifiers\":[" +
                             "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + regroupement + "\"},\"property\":\"" + props.get("Regroupement") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}," +
