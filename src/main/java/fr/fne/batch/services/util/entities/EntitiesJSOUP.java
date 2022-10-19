@@ -5,6 +5,7 @@ import fr.fne.batch.services.util.api.Tool;
 import fr.fne.batch.services.util.bdd.DatabaseInsert;
 import oracle.xdb.XMLType;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -62,14 +63,19 @@ public class EntitiesJSOUP {
             if (!title.isEmpty()) { // "Works" Tr case without title, example : id='5420922'
 
                 // Doc how to create entites : item, prop, etc. => https://www.wikidata.org/w/api.php?action=help&modules=wbeditentity
-                String data = "{\"type\": \"item\",\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"" + title + "\"}},\"claims\":{";
 
-                data += addClaims(csrftoken, props, theNotice);
+                //String data = "{\"type\": \"item\",\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"" + title + "\"}},\"claims\":{";
+                JSONObject labels = new JSONObject().put("language","fr").put("value",title);
+                JSONObject dataJ =  new JSONObject().put("type","item").put("labels",new JSONObject().put("fr",labels));
+                dataJ.put("claims",new JSONObject());
 
-                if (data.endsWith(",")){
+                dataJ = addClaims(csrftoken, props, theNotice, dataJ);
+
+                /*if (data.endsWith(",")){
                     data = data.substring(0,data.length()-1);
                 }
-                data+="}}";
+                data+="}}";*/
+
 
                /* Map<String, String> params = new LinkedHashMap<>();
                 params.put("action", "wbeditentity");
@@ -81,8 +87,8 @@ public class EntitiesJSOUP {
                 logger.info("data : "+data);
                 JSONObject json = util.postJson(urlWikiBase, params);
                 logger.info("==>" + json.toString());*/
-
-                databaseInsert.createItem(data);
+                //logger.info("==>" + dataJ.toString());
+                databaseInsert.createItem(dataJ.toString());
             } else {
                 logger.info("==> no title for PPN : " + noticeXML);
             }
@@ -101,12 +107,10 @@ public class EntitiesJSOUP {
      * controlfield (element with tag and no ind attributes) and
      * datafield (element with tag and ind attributes) which contains subfield
      */
-    private String addClaims(String csrftoken, Map<String,String> props, Document theNotice) throws Exception{
-        String data = "";
-
+    private JSONObject addClaims(String csrftoken, Map<String,String> props, Document theNotice, JSONObject dataJ) throws Exception{
         //Leader
         //logger.info("LEADER:"+theNotice.getElementsByTag("leader").get(0).text());
-        data += jsonClaim(csrftoken,props,"leader",theNotice.getElementsByTag("leader").get(0).text(),1,1);
+        dataJ = jsonClaim(csrftoken,props,"leader",theNotice.getElementsByTag("leader").get(0).text(),1,1, dataJ);
 
         int regroupement = 1;
 
@@ -115,7 +119,7 @@ public class EntitiesJSOUP {
         for (int i=0;i<zones.size();i++){
             Element zone = zones.get(i);
             regroupement++;
-            data += jsonClaim(csrftoken,props,zone.attr("tag"),zone.text(),regroupement,1);
+            dataJ = jsonClaim(csrftoken,props,zone.attr("tag"),zone.text(),regroupement,1, dataJ);
         //    logger.info("CONTROLFIELD:"+zone.attr("tag")+" texte:"+zone.text());
         }
 
@@ -155,19 +159,19 @@ public class EntitiesJSOUP {
                 subZoneTag+=subZone.attr("code");
                 ordre++;
 //logger.info("SUBFIELD : tagEnCours: "+tagEnCours+" subZoneTag:"+subZoneTag+" Value:"+value+ "regroupement:"+regroupement+" ordre:"+ordre);
-                data += jsonClaim(csrftoken,props,subZoneTag,value, regroupement, ordre);
+                dataJ = jsonClaim(csrftoken,props,subZoneTag,value, regroupement, ordre, dataJ);
             }
 
         }
-        return data;
+        return dataJ;
     }
 
     /*
      * Generate the json string to pass to the wikibase API
      */
-    private String jsonClaim(String csrftoken, Map<String,String> props, String tag, String value, int regroupement, int ordre) throws Exception{
+    private JSONObject jsonClaim(String csrftoken, Map<String,String> props, String tag, String value, int regroupement, int ordre, JSONObject dataJ) throws Exception{
         //logger.info(tag);
-        String claim = "";
+
         /*if (props.get(tag)==null){
             String idProp = properties.create(csrftoken,tag); // Création de la propriété
             props.put(tag, idProp); // Ajout dans la map
@@ -175,17 +179,38 @@ public class EntitiesJSOUP {
 
         //On ne gère ici que des propriétés connues car on teste un chargement sans commit
         if (props.get(tag)!=null) {
-            claim = "\""+props.get(tag)+"\":"+"[{\"mainsnak\":{\"snaktype\":\"value\",\"property\":\"" +
+
+            JSONObject claim = new JSONObject(
+                    "{\"mainsnak\":{\"snaktype\":\"value\",\"property\":\"" +
+                            props.get(tag) + "\",\"datavalue\":{\"value\":\"" + value +
+                            "\",\"type\":\"string\"}},\"type\":\"statement\",\"rank\":\"normal\"," +
+                            "\"qualifiers\":[" +
+                            "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + regroupement + "\"},\"property\":\"" + props.get("Regroupement") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}," +
+                            "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + ordre + "\"},\"property\":\"" + props.get("Ordre") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}" +
+                            "]}"
+            );
+            //logger.info("Ajout de : "+ new JSONArray().put(claim).toString());
+
+            if (dataJ.getJSONObject("claims").optJSONArray(props.get(tag))==null){
+                dataJ.getJSONObject("claims").put(props.get(tag),new JSONArray().put(claim));
+            }
+            else {
+                dataJ.getJSONObject("claims").optJSONArray(props.get(tag)).put(claim);
+            }
+
+        /*    claim = "\""+props.get(tag)+"\":"+"[{\"mainsnak\":{\"snaktype\":\"value\",\"property\":\"" +
                     props.get(tag) + "\",\"datavalue\":{\"value\":\"" + value +
                     "\",\"type\":\"string\"}},\"type\":\"statement\",\"rank\":\"normal\"," +
                     "\"qualifiers\":[" +
                     "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + regroupement + "\"},\"property\":\"" + props.get("Regroupement") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}," +
                     "{\"datavalue\":{\"type\":\"string\",\"value\":\"" + ordre + "\"},\"property\":\"" + props.get("Ordre") + "\",\"snaktype\":\"value\",\"datatype\":\"string\"}" +
                     "]}],";
+
+         */
         }
         else {
             logger.info("Tag "+tag+" à insérer dans Properties.txt");
         }
-        return claim;
+        return dataJ;
     };
 }

@@ -21,7 +21,7 @@ import java.util.UUID;
 public class DatabaseInsert {
 
     private final Logger logger = Logger.getLogger(LoadSubset.class);
-    private final static String LANG = "en"; //Lang des insertions
+    private final static String LANG = "fr"; //Lang des insertions
     private final static int ACTOR = 1;
     private final Connection connection;
     private final PrintWriter sqlout;
@@ -255,10 +255,18 @@ logger.info("JSON : "+jsonString);
         String labelEn = json.getJSONObject("labels").getJSONObject(LANG).optString("value");
         if (labelEn.length()>254)
             labelEn = labelEn.substring(0,255);
-        String descriptionEn = json.optJSONObject("descriptions").getJSONObject(LANG).optString("value");
-        if (descriptionEn!=null && descriptionEn.length()>254)
-            descriptionEn = descriptionEn.substring(0,255);
-        JSONArray aliasEn = json.optJSONObject("aliases").getJSONArray(LANG);
+
+        String descriptionEn = null;
+        if (json.optJSONObject("descriptions")!=null){
+            descriptionEn = json.optJSONObject("descriptions").optJSONObject(LANG).optString("value");
+            if (descriptionEn!=null && descriptionEn.length()>254)
+                descriptionEn = descriptionEn.substring(0,255);
+        }
+
+        JSONArray aliasEn = null;
+        if (json.optJSONObject("aliases")!=null){
+            aliasEn = json.optJSONObject("aliases").optJSONArray(LANG);
+        }
 
         try {
             final String data = json.toString();
