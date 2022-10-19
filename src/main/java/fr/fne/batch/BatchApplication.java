@@ -1,6 +1,7 @@
 package fr.fne.batch;
 
-import fr.fne.batch.services.LoadSubset;
+import fr.fne.batch.services.LoadSubsetAPI;
+import fr.fne.batch.services.LoadSubsetDirect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,9 @@ public class BatchApplication implements CommandLineRunner {
 	@Autowired
     private LoadAll loadAll;
 	@Autowired
-	private LoadSubset loadSubset;
+	private LoadSubsetDirect loadSubsetDirect;
+	@Autowired
+	private LoadSubsetAPI loadSubsetAPI;
 	@Autowired
     private DeleteWB deleteWB;
 	
@@ -48,10 +51,24 @@ public class BatchApplication implements CommandLineRunner {
 		// Get parameters
 		if (args.length > 0) {						
 			String action = args[0];
-			if (action.equalsIgnoreCase("loadSubset")) {
+			if (action.equalsIgnoreCase("loadSubsetDirect")) {
 				//The second parameter "subsetFile" can be something like "C:/[...]/something.txt"
                 //If subsetFile, by default the file is : resources/EchantillonPPN.txt
-				loadSubset.go("");
+
+				//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Created 855 items in 235 s.
+				//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Speed is 218 items/minute.
+
+				//Erreurs :
+				//PPN : 110513819 ERROR [main] fr.fne.batch.services.LoadSubsetDirect - Erreur titre déjà présent ? : M. (1971-....) exception:Duplicate entry 'M. (1971-....)' for key 'wbt_text_text'
+				//PPN : 120924927 ERROR [main] fr.fne.batch.services.LoadSubsetDirect - Erreur titre déjà présent ? : Givet (Ardennes) exception:Duplicate entry 'Givet (Ardennes)' for key 'wbt_text_text'
+				//PPN : 151786771 ERROR [main] fr.fne.batch.services.LoadSubsetDirect - Erreur titre déjà présent ? : Nogent-sur-Marne (Val-de-Marne) exception:Duplicate entry 'Nogent-sur-Marne (Val-de-Marne)' for key 'wbt_text_text'
+				//PPN : 027226794 ERROR [main] fr.fne.batch.services.LoadSubsetDirect - Erreur titre déjà présent ? : France exception:Duplicate entry 'France' for key 'wbt_text_text'
+				loadSubsetDirect.go("");
+			}
+			else if (action.equalsIgnoreCase("loadSubsetAPI")) {
+				//INFO  [main] fr.fne.batch.services.LoadSubsetAPI - Created 855 items in 643 s.
+				//INFO  [main] fr.fne.batch.services.LoadSubsetAPI - Speed is 79 items/minute.
+				loadSubsetAPI.go("");
 			}
 			else if (action.equalsIgnoreCase("loadAll")) {
 				loadAll.go(urlWikiBase);

@@ -43,9 +43,10 @@ public class EntitiesJSOUP {
     private Properties properties;
 
     /*
-     * Insert in urlWikiBase, the record, with the properties defined (props)
+     * Get the record/entity with the properties defined (props)
      */
-    public void insert(DatabaseInsert databaseInsert, String csrftoken, Map<String,String> props, String record) {
+    public String get(String csrftoken, Map<String,String> props, String record) {
+        String entity = null;
         try {
             String noticeXML = record.replace(STR009C, "").replace(STR0098, "");
             //logger.info(noticeXML);
@@ -85,7 +86,6 @@ public class EntitiesJSOUP {
                 }
                 data+="}}";*/
 
-
                /* Map<String, String> params = new LinkedHashMap<>();
                 params.put("action", "wbeditentity");
                 params.put("new", "item");
@@ -97,7 +97,8 @@ public class EntitiesJSOUP {
                 JSONObject json = util.postJson(urlWikiBase, params);
                 logger.info("==>" + json.toString());*/
                 //logger.info("==>" + dataJ.toString());
-                databaseInsert.createItem(dataJ.toString());
+
+                entity = dataJ.toString();
             } else {
                 logger.info("==> no title for PPN : " + noticeXML);
             }
@@ -108,6 +109,9 @@ public class EntitiesJSOUP {
         } catch (Exception e) {
             logger.error("Error on the record :" + e.getMessage());
             e.printStackTrace();
+        }
+        finally {
+            return entity;
         }
     }
 

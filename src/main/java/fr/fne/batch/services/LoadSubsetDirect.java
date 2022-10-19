@@ -1,12 +1,10 @@
 package fr.fne.batch.services;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -16,8 +14,6 @@ import fr.fne.batch.services.util.entities.EntitiesJSOUP;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -27,15 +23,14 @@ import oracle.xdb.XMLType;
 
 import fr.fne.batch.services.util.api.Tool;
 import fr.fne.batch.services.util.entities.Properties;
-import fr.fne.batch.services.util.entities.Entities;
 
 /*
  * Batch used to load a subset find in a given file
  */
 @Service
-public class LoadSubset {
+public class LoadSubsetDirect {
 
-    private final Logger logger = Logger.getLogger(LoadSubset.class);
+    private final Logger logger = Logger.getLogger(LoadSubsetDirect.class);
 
     @Autowired
     private Tool util;
@@ -83,8 +78,8 @@ public class LoadSubset {
             String csrftoken = util.connexionWB();
             logger.info("The csrftoken is : " + csrftoken);
 
-            // Création des propriétés : commenté ici car elles sont déjà présentes dans le wikibase
-            //properties.createWithFile(csrftoken);
+            // Création des propriétés :
+            properties.createWithFile(csrftoken);
 
             //Get all properties (defined in resources/Properties.txt) needed, to know the corresponding WikiBase IDs
             Map<String,String> props;
@@ -105,6 +100,8 @@ public class LoadSubset {
             di.startTransaction();
 
 
+            String entity = null;
+
             //Connect to the database and get the records
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(
                     "select id, ppn, XMLROOT(data_xml,version '1.0\" encoding=\"UTF-8') as data_xml from notices where id in "
@@ -114,8 +111,10 @@ public class LoadSubset {
                 recordNb++;
                 String ppn = row.get("ppn").toString();
                 logger.info("PPN à insérer : " + ppn);
-                //DatabaseInsert di appelé avec createItem
-                entities.insert(di, csrftoken,props,((XMLType) row.get("data_xml")).getStringVal());
+                entity = entities.get(csrftoken,props,((XMLType) row.get("data_xml")).getStringVal());
+                if (entity!=null) {
+                    di.createItem(entity);
+                }
             }
 
             di.commit();

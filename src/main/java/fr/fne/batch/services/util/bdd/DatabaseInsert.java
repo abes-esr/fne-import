@@ -1,6 +1,6 @@
 package fr.fne.batch.services.util.bdd;
 
-import fr.fne.batch.services.LoadSubset;
+import fr.fne.batch.services.LoadSubsetDirect;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.apache.log4j.Logger;
@@ -20,7 +20,7 @@ import java.util.UUID;
  */
 public class DatabaseInsert {
 
-    private final Logger logger = Logger.getLogger(LoadSubset.class);
+    private final Logger logger = Logger.getLogger(LoadSubsetDirect.class);
     private final static String LANG = "fr"; //Lang des insertions
     private final static int ACTOR = 1;
     private final Connection connection;
