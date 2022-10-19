@@ -142,6 +142,8 @@ public class DatabaseInsert {
         pstmtInsert_wbt_item_terms = connection.prepareStatement("INSERT IGNORE INTO wbt_item_terms VALUES(NULL,?,?)");
 
 
+        //Si aucun Item n'a été créé : alors on insère une ligne dans wb_id_counters
+        /*
         ResultSet rs = pstmtSelectLastItemId.executeQuery();
         if (rs.next()) {
             lastQNumber = rs.getInt(1);
@@ -151,45 +153,57 @@ public class DatabaseInsert {
         // Check if the Q-number is really unused
         while (itemExists("Q" + (lastQNumber + 1))) {
             lastQNumber++;
-        }
+        }*/
+        connection.createStatement().execute("INSERT INTO wb_id_counters VALUES(1, 'wikibase-item')");
 
         final Statement stmt = connection.createStatement();
-        rs = stmt.executeQuery("SELECT max(page_id) FROM page");
-        rs.next();
-        pageId = rs.getLong(1);
+        ResultSet rs = stmt.executeQuery("SELECT max(page_id) FROM page");
+        if (rs.next()) {
+            pageId = rs.getLong(1);
+        }
         rs.close();
 
         rs = stmt.executeQuery("SELECT max(old_id) FROM text");
-        rs.next();
-        textId = rs.getLong(1);
+        if (rs.next()) {
+            textId = rs.getLong(1);
+        }
         rs.close();
 
         rs = stmt.executeQuery("SELECT max(comment_id) FROM comment");
-        rs.next();
-        commentId = rs.getLong(1);
+        if (rs.next()) {
+            commentId = rs.getLong(1);
+        }
         rs.close();
 
         rs = stmt.executeQuery("SELECT max(content_id) FROM content");
-        rs.next();
-        contentId = rs.getLong(1);
+        if (rs.next()) {
+            contentId = rs.getLong(1);
+        }
         rs.close();
 
         rs = stmt.executeQuery("SELECT max(wbx_id) FROM wbt_text");
-        rs.next();
-        wbxId = rs.getLong(1);
+        if (rs.next()) {
+            wbxId = rs.getLong(1);
+        }
         rs.close();
 
         rs = stmt.executeQuery("SELECT max(wbxl_id) FROM wbt_text_in_lang");
-        rs.next();
-        wbxlId = rs.getLong(1);
+        if (rs.next()) {
+            wbxlId = rs.getLong(1);
+        }
         rs.close();
 
         rs = stmt.executeQuery("SELECT max(wbtl_id) FROM wbt_term_in_lang");
-        rs.next();
-        wbtlId = rs.getLong(1);
+        if (rs.next()) {
+            wbtlId = rs.getLong(1);
+        }
         rs.close();
 
-        //ACT : contient description, label et alias
+        //ACT : contient label, description  et alias
+        //Ajout de ces 2 lignes car pas d'Item créé au départ
+        connection.createStatement().execute("INSERT INTO wbt_type (wby_name) VALUES('description')");
+        connection.createStatement().execute("INSERT INTO wbt_type (wby_name) VALUES('alias')");
+
         rs = stmt.executeQuery("SELECT wby_name, wby_id FROM wbt_type");
         while (rs.next()){
             wbt_type.put(rs.getString(1),rs.getString(2));
@@ -370,6 +384,8 @@ public class DatabaseInsert {
     }
 
     private void insert_wbt_table(String texte, String type) throws Exception{
+
+        //logger.info("insert_wbt_table : "+texte + " "+type+" wbxId:"+wbxId+" wbxlId:"+wbxlId+" wbtlId:"+wbtlId+" wbt_type:"+wbt_type.get(type)+" lastQNumber:"+lastQNumber);
         //Si le texte est un label, il peut y avoir une exception si ce label est déjà présent (pas de doublon autorisé)
         wbxId++;
         pstmtInsert_wbt_text.setLong(1, wbxId);

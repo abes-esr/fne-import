@@ -65,8 +65,17 @@ public class EntitiesJSOUP {
                 // Doc how to create entites : item, prop, etc. => https://www.wikidata.org/w/api.php?action=help&modules=wbeditentity
 
                 //String data = "{\"type\": \"item\",\"labels\":{\"fr\":{\"language\":\"fr\",\"value\":\"" + title + "\"}},\"claims\":{";
+                JSONObject dataJ =  new JSONObject().put("type","item");
+
                 JSONObject labels = new JSONObject().put("language","fr").put("value",title);
-                JSONObject dataJ =  new JSONObject().put("type","item").put("labels",new JSONObject().put("fr",labels));
+                dataJ.put("labels",new JSONObject().put("fr",labels));
+
+                JSONObject descriptions = new JSONObject().put("language","fr").put("value","Description "+title);
+                dataJ.put("descriptions",new JSONObject().put("fr",descriptions));
+
+                JSONObject alias = new JSONObject().put("language","fr").put("value","Alias "+title);
+                dataJ.put("aliases",new JSONObject().put("fr",new JSONArray().put(alias)));
+
                 dataJ.put("claims",new JSONObject());
 
                 dataJ = addClaims(csrftoken, props, theNotice, dataJ);
