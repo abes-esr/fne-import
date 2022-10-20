@@ -55,22 +55,16 @@ public class BatchApplication implements CommandLineRunner {
 				//The second parameter "subsetFile" can be something like "C:/[...]/something.txt"
                 //If subsetFile, by default the file is : resources/EchantillonPPN.txt
 
-				//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Created 855 items in 235 s.
-				//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Speed is 218 items/minute.
-
-				//Erreurs :
-				//PPN : 110513819 ERROR [main] fr.fne.batch.services.LoadSubsetDirect - Erreur titre déjà présent ? : M. (1971-....) exception:Duplicate entry 'M. (1971-....)' for key 'wbt_text_text'
-				//PPN : 120924927 ERROR [main] fr.fne.batch.services.LoadSubsetDirect - Erreur titre déjà présent ? : Givet (Ardennes) exception:Duplicate entry 'Givet (Ardennes)' for key 'wbt_text_text'
-				//PPN : 151786771 ERROR [main] fr.fne.batch.services.LoadSubsetDirect - Erreur titre déjà présent ? : Nogent-sur-Marne (Val-de-Marne) exception:Duplicate entry 'Nogent-sur-Marne (Val-de-Marne)' for key 'wbt_text_text'
-				//PPN : 027226794 ERROR [main] fr.fne.batch.services.LoadSubsetDirect - Erreur titre déjà présent ? : France exception:Duplicate entry 'France' for key 'wbt_text_text'
+				//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Created 855 items in 48 s.
+				//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Speed is 1068 items/minute.
 				loadSubsetDirect.go("");
 			}
 			else if (action.equalsIgnoreCase("loadSubsetAPI")) {
-				//INFO  [main] fr.fne.batch.services.LoadSubsetAPI - Created 855 items in 643 s.
-				//INFO  [main] fr.fne.batch.services.LoadSubsetAPI - Speed is 79 items/minute.
+				//INFO  [main] fr.fne.batch.services.LoadSubsetAPI - Created 855 items in 284 s.
+				//INFO  [main] fr.fne.batch.services.LoadSubsetAPI - Speed is 180 items/minute.
 				loadSubsetAPI.go("");
 			}
-			else if (action.equalsIgnoreCase("loadAll")) {
+			/*else if (action.equalsIgnoreCase("loadAll")) {
 				loadAll.go(urlWikiBase);
 			}
 			else if (action.equalsIgnoreCase("delete")) {
@@ -80,7 +74,7 @@ public class BatchApplication implements CommandLineRunner {
 				//basicOAuth1OwnerOnlyConnexion.go(urlWikiBase);
 				//oAuth1ThreeStepsConnexion.go(urlWikiBase);
 				oAuth2ThreeStepsConnexion.go(urlWikiBase);
-			}
+			}*/
 			
 			if (args.length>1) {
 				urlWikiBase = args[1];

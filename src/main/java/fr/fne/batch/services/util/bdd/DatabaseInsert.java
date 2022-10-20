@@ -267,35 +267,35 @@ public class DatabaseInsert {
             }
         }
 
-        String labelEn = json.getJSONObject("labels").getJSONObject(LANG).optString("value");
-        if (labelEn.length()>254)
-            labelEn = labelEn.substring(0,255);
+        String label = json.getJSONObject("labels").getJSONObject(LANG).optString("value");
+        if (label.length()>254)
+            label = label.substring(0,255);
 
-        String descriptionEn = null;
+        String description = null;
         if (json.optJSONObject("descriptions")!=null){
-            descriptionEn = json.optJSONObject("descriptions").optJSONObject(LANG).optString("value");
-            if (descriptionEn!=null && descriptionEn.length()>254)
-                descriptionEn = descriptionEn.substring(0,255);
+            description = json.optJSONObject("descriptions").optJSONObject(LANG).optString("value");
+            if (description!=null && description.length()>254)
+                description = description.substring(0,255);
         }
 
-        JSONArray aliasEn = null;
+        JSONArray aliases = null;
         if (json.optJSONObject("aliases")!=null){
-            aliasEn = json.optJSONObject("aliases").optJSONArray(LANG);
+            aliases = json.optJSONObject("aliases").optJSONArray(LANG);
         }
 
         try {
             final String data = json.toString();
 
             //ACT ajout des tables wbt_*  au début car un doublon peut provoquer une exception :
-            insert_wbt_table(labelEn,"label");
+            insert_wbt_table(label,"label");
 
-            if (descriptionEn!=null) {
-                insert_wbt_table(descriptionEn, "description");
+            if (description!=null) {
+                insert_wbt_table(description, "description");
             }
 
-            if (aliasEn!=null) {
-                for (int i = 0; i < aliasEn.length(); i++) {
-                    String alias = aliasEn.getJSONObject(i).optString("value");
+            if (aliases!=null) {
+                for (int i = 0; i < aliases.length(); i++) {
+                    String alias = aliases.getJSONObject(i).optString("value");
                     if (alias.length() > 254)
                         alias = alias.substring(0, 255);
 
@@ -326,7 +326,7 @@ public class DatabaseInsert {
             pstmtInsertRevision.setString(4, sha1base36(data));
             executeUpdate(pstmtInsertRevision);
 
-            final String comment = "/* wbeditentity-create:2|en */ " + labelEn + ", " + descriptionEn;
+            final String comment = "/* wbeditentity-create:2|en */ " + label + ", " + description;
 
             pstmtInsertComment.setInt(2, comment.hashCode());
             pstmtInsertComment.setString(3, comment);
@@ -375,10 +375,11 @@ public class DatabaseInsert {
 
             pstmtUpdateWbIdCounters.setInt(1, lastQNumber);
             executeUpdate(pstmtUpdateWbIdCounters);
+
+            //logger.info("Nouveau Q:"+lastQNumber);
         }
         catch (Exception e){
-            logger.error("Erreur titre déjà présent ? : "+labelEn+" exception:"+e.getMessage());
-            lastQNumber--;
+            logger.error("Erreur titre déjà présent ? : "+label+" exception:"+e.getMessage());
         }
         return itemId;
     }

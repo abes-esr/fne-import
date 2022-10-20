@@ -60,6 +60,7 @@ public class EntitiesJSOUP {
                         .getElementsByAttributeValueMatching("tag", "900|910|915|920|930|940|950|960|980")
                         .get(0).getElementsByAttributeValue("code", "a").text();
             }
+            //logger.info("Titre : "+title);
 
             if (!title.isEmpty()) { // "Works" Tr case without title, example : id='5420922'
 
