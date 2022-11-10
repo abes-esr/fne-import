@@ -55,6 +55,7 @@ public class BatchApplication implements CommandLineRunner {
 				//The second parameter "subsetFile" can be something like "C:/[...]/something.txt"
                 //If subsetFile, by default the file is : resources/EchantillonPPN.txt
 
+				//Version sans executeBatch :
 				//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Created 855 items in 48 s.
 				//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Speed is 1068 items/minute.
 				loadSubsetDirect.go("");

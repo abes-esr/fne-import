@@ -89,8 +89,9 @@ public class LoadSubsetDirect {
 
 
             //Test chargement direct en BDD
+            //Supprimer l'option &rewriteBatchedStatements=true si pas d'executeBatch utilisé dans DatabaseInsert
             Connection connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/my_wiki?characterEncoding=utf-8",
+                    "jdbc:mariadb://localhost:3306/my_wiki?characterEncoding=utf-8&rewriteBatchedStatements=true",
                     "sqluser",
                     "change-this-sqlpassword");
 
@@ -109,8 +110,17 @@ public class LoadSubsetDirect {
 
             for (Map<String, Object> row : rows) {
                 recordNb++;
-                String ppn = row.get("ppn").toString();
-                logger.info("PPN à insérer : " + ppn);
+                //String ppn = row.get("ppn").toString();
+                //logger.info("PPN à insérer : " + ppn);
+
+                //=> Avec les executeBatch et l'option &rewriteBatchedStatements=true et la ligne de log désactivée ci-dessus)
+                //INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Created 855 items in 31 s.
+                //INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Speed is 1654 items/minute.
+
+                //=> Sans insertion réelle
+                //INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Created 855 items in 13 s.
+                //INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Speed is 3946 items/minute.
+
                 entity = entities.get(csrftoken,props,((XMLType) row.get("data_xml")).getStringVal());
                 if (entity!=null) {
                     di.createItem(entity);

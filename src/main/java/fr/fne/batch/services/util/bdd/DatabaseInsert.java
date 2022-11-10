@@ -115,6 +115,24 @@ public class DatabaseInsert {
     }
 
     public void commit() throws SQLException {
+
+        //Version avec executeBatch()
+        pstmtInsertText.executeBatch();
+        pstmtInsertPage.executeBatch();
+        pstmtInsertRevision.executeBatch();
+        pstmtInsertComment.executeBatch();
+        pstmtInsertRevisionComment.executeBatch();
+        pstmtInsertRevisionActor.executeBatch();
+        pstmtInsertContent.executeBatch();
+        pstmtInsertSlots.executeBatch();
+        pstmtInsertRecentChanges.executeBatch();
+        pstmtUpdateWbIdCounters.executeBatch();
+        pstmtInsert_wbt_text.executeBatch();
+        pstmtInsert_wbt_text_in_lang.executeBatch();
+        pstmtInsert_wbt_term_in_lang.executeBatch();
+        pstmtInsert_wbt_item_terms.executeBatch();
+        //A enlever si pas executeBatch()
+
         connection.commit();
     }
 
@@ -412,6 +430,11 @@ public class DatabaseInsert {
 
     private void executeUpdate(final PreparedStatement pstmt) throws SQLException {
         // Here you have a chance to log the executed statement.
-        pstmt.executeUpdate();
+
+        //pstmt.executeUpdate();
+
+        //Version avec executeBatch, sinon il faut utiliser la ligne ci-dessus à la place
+        pstmt.addBatch();
+
     }
 }
