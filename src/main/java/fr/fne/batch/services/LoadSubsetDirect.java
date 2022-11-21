@@ -157,18 +157,24 @@ public class LoadSubsetDirect {
 
                     recordNb++;
 
+                    /*
                     lanceCommit++;
 
                     if (lanceCommit==1000){
                         di.commit();
                         lanceCommit=0;
-                    }
+                    }*/
 
                     //String ppn = row.get("ppn").toString();
                     //logger.info("PPN à insérer : " + ppn);
 
-                    //INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Created 16672 items in 560 s.
-                    //INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Speed is 1786 items/minute.
+                    //Avec commit tous les 1000
+//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Created 16672 items in 378 s.
+//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Speed is 44 items/second.
+
+                    //Sans commit tous les 1000
+//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Created 16672 items in 354 s.
+//INFO  [main] fr.fne.batch.services.LoadSubsetDirect - Speed is 47 items/second.
 
                     entity = entities.get(csrftoken, props, record.toString());
 
