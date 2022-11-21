@@ -146,6 +146,8 @@ public class LoadSubsetDirect {
             //Le dump est disponible ici : /applis/portail/SitemapNoticesSudoc/noticesautorites/dump
             File[] fichiers = new File("C:/dump/").listFiles();
 
+            int lanceCommit = 0;
+
             for (int i=0;i<fichiers.length;i++) {
                 Document collection = Jsoup.parse(new FileInputStream(fichiers[i]), "UTF-8", "", Parser.xmlParser());
 
@@ -154,6 +156,13 @@ public class LoadSubsetDirect {
                     Element record = records.get(j);
 
                     recordNb++;
+
+                    lanceCommit++;
+
+                    if (lanceCommit==1000){
+                        di.commit();
+                        lanceCommit=0;
+                    }
 
                     //String ppn = row.get("ppn").toString();
                     //logger.info("PPN à insérer : " + ppn);
@@ -175,7 +184,7 @@ public class LoadSubsetDirect {
             stopWatch.stop();
 
             logger.info("Created "+recordNb+" items in " + stopWatch.getTime(TimeUnit.SECONDS)+" s.");
-            logger.info("Speed is "+(int) (recordNb * 60 / (double) stopWatch.getTime(TimeUnit.SECONDS))+" items/minute.");
+            logger.info("Speed is "+(int) (recordNb / (double) stopWatch.getTime(TimeUnit.SECONDS))+" items/second.");
 
         } catch (Exception e) {
             logger.error("LoadSubset pb : " + e.getMessage());

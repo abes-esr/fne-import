@@ -119,7 +119,7 @@ public class LoadSubsetAPI {
             stopWatch.stop();
 
             logger.info("Created "+recordNb+" items in " + stopWatch.getTime(TimeUnit.SECONDS)+" s.");
-            logger.info("Speed is "+(int) (recordNb * 60 / (double) stopWatch.getTime(TimeUnit.SECONDS))+" items/minute.");
+            logger.info("Speed is "+(int) (recordNb / (double) stopWatch.getTime(TimeUnit.SECONDS))+" items/minute.");
 
         } catch (Exception e) {
             logger.error("LoadSubset pb : " + e.getMessage());

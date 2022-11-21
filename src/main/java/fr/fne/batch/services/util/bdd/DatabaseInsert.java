@@ -24,7 +24,6 @@ public class DatabaseInsert {
     private final static String LANG = "fr"; //Lang des insertions
     private final static int ACTOR = 1;
     private final Connection connection;
-    private final PrintWriter sqlout;
     /**
      * Do not read ids from the database for every item. Assign them once and assume no other process writes to the
      * database.
@@ -63,7 +62,6 @@ public class DatabaseInsert {
     public DatabaseInsert(Connection con) throws SQLException, IOException {
         this.connection = con;
         afterPropertiesSet();
-        sqlout = new PrintWriter(new FileWriter("C:/temp/wikibase.sql"));
     }
 
     private static String sha1base36(String s) {
@@ -96,7 +94,6 @@ public class DatabaseInsert {
         pstmtInsert_wbt_item_terms.close();
 
         connection.close();
-        sqlout.close();
     }
 
     private void work(InputStream stream) throws SQLException, IOException {
