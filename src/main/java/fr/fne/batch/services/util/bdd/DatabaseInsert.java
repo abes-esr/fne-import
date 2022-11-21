@@ -143,7 +143,7 @@ public class DatabaseInsert {
         pstmtInsertRevisionComment = connection.prepareStatement("INSERT INTO revision_comment_temp VALUES (?,?)");
         pstmtInsertRevisionActor = connection.prepareStatement("INSERT INTO revision_actor_temp VALUES( ?, ?, ?,  ?)");
         //ACT
-        pstmtInsertRevision = connection.prepareStatement("INSERT INTO revision VALUES(NULL,?,0,0,?,0,0,?,0,?)");
+        pstmtInsertRevision = connection.prepareStatement("INSERT INTO revision VALUES(?,?,0,0,?,0,0,?,0,?)");
 
         pstmtInsertSlots = connection.prepareStatement("INSERT INTO slots VALUES( ?, 1, ?, ?)");
         pstmtUpdateWbIdCounters = connection.prepareStatement("UPDATE wb_id_counters SET id_value=? WHERE id_type='wikibase-item'");
@@ -335,10 +335,11 @@ public class DatabaseInsert {
             executeUpdate(pstmtInsertPage);
 
             pstmtInsertRevision.setLong(1, pageId);
-            pstmtInsertRevision.setString(2, timestamp);
-            pstmtInsertRevision.setInt(3, data.length());
+            pstmtInsertRevision.setLong(2, pageId);
+            pstmtInsertRevision.setString(3, timestamp);
+            pstmtInsertRevision.setInt(4, data.length());
             //pstmtInsertRevision.setLong(4, textId);
-            pstmtInsertRevision.setString(4, sha1base36(data));
+            pstmtInsertRevision.setString(5, sha1base36(data));
             executeUpdate(pstmtInsertRevision);
 
             final String comment = "/* wbeditentity-create:2|en */ " + label + ", " + description;
